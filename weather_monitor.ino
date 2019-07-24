@@ -1,17 +1,18 @@
 #include <dht11.h>
 #include <LiquidCrystal.h>
- 
+#include <SoftwareSerial.h>
 dht11 DHT11;
 #define DHT11PIN 2
 LiquidCrystal lcd(4, 6, 10, 11, 12, 13);  //Define the connection LCD pin  
 
-char array2[]="   DATA: 0000    ";  //the string to print on the LCD
-
-int tim = 50;                       //the value of delay time
 int thermistorPin = 1;           // thermistor connected to analog pin A1
 
 int photocellPin  = 0;           //photoresistor connected to analog pin A0
 int photocellReading; // analog reading from the photocell
+
+float global_tempc_therm = 0;
+float global_temp_dht = 0;
+float global_humid_dht = 0;
 
 void setup()
 { 
@@ -42,9 +43,9 @@ void printFeels()
   float a = analogRead(thermistorPin);
   //the calculating formula of temperature
   float resistor = (1023.0*10000)/a-10000;
-  float tempC = (3435.0/(log(resistor/10000)+(3435.0/(273.15+25)))) - 273.15;
+  global_tempc_therm = (3435.0/(log(resistor/10000)+(3435.0/(273.15+25)))) - 273.15;
   lcd.setCursor(9, 0);
-  lcd.print(tempC);// Print a centigrade temperature to the LCD.   
+  lcd.print(global_tempc_therm);// Print a centigrade temperature to the LCD.  
 }
 
 void setupDhtTemp()
@@ -60,7 +61,8 @@ void printDhtTemp()
 {
    int chk = DHT11.read(DHT11PIN);
    lcd.setCursor(9, 1);
-   lcd.print((float)DHT11.temperature, 2);// Print a centigrade temperature to the LCD.  
+   global_temp_dht = (float)DHT11.temperature;
+   lcd.print(global_temp_dht, 2);// Print a centigrade temperature to the LCD.  
 }
 
 void setupDhtHumidity()
@@ -76,7 +78,8 @@ void printDhtHumidity()
 {
   int chk = DHT11.read(DHT11PIN);
   lcd.setCursor(9, 1); // set the cursor to column 0, line 0
-  lcd.print((float)DHT11.humidity, 2);// Print a message of "Humidity: "to the LCD
+  global_humid_dht = (float)DHT11.humidity;
+  lcd.print(global_humid_dht, 2);// Print a message of "Humidity: "to the LCD
 }
 
 void printSetupLight()
@@ -111,6 +114,15 @@ void printAssumedLight()
   }
 }
 
+void printToSerial(){
+  Serial.print(global_tempc_therm);
+  Serial.print(",");
+  Serial.print(global_temp_dht);
+  Serial.print(",");
+  Serial.print(global_humid_dht);
+  Serial.print("\n");
+}
+
 void loop()
 {      
     int chk = DHT11.read(DHT11PIN);
@@ -120,7 +132,7 @@ void loop()
     {  
       printFeels();
       printDhtTemp();
-      delay(1000);  
+      delay(500);  
     }
     
     setupDhtHumidity();
@@ -128,16 +140,16 @@ void loop()
     {
       printFeels();
       printDhtHumidity();
-      delay(1000);    
+      delay(500);    
     }
-        
-    for (int tempRounds = 0; tempRounds < 6; tempRounds++)
-    { 
-      printFeels();    
-      printRawLight();
-      delay(2000);
-      printFeels();
-      printAssumedLight();
-      delay(2000);
-    }
+    printToSerial();
+    //for (int tempRounds = 0; tempRounds < 6; tempRounds++)
+    //{ 
+    //  printFeels();    
+    //  printRawLight();
+    //  delay(2000);
+    //  printFeels();
+    //  printAssumedLight();
+    //  delay(2000);
+    //}
 }
