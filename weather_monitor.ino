@@ -1,8 +1,14 @@
-#include <dht11.h>
+//#include <dht11.h>
+// dht11 DHT11;
+
 #include <LiquidCrystal.h>
 #include <SoftwareSerial.h>
-dht11 DHT11;
+
+#include <DHT.h>
 #define DHT11PIN 2
+#define DHTTYPE DHT11
+DHT dht(DHT11PIN, DHTTYPE);
+
 LiquidCrystal lcd(4, 6, 10, 11, 12, 13);  //Define the connection LCD pin  
 
 int thermistorPin = 1;           // thermistor connected to analog pin A1
@@ -20,6 +26,7 @@ void setup()
      lcd.clear();         //Clears the LCD screen and positions the cursor in the upper-left corner 
      delay(1000); //
      Serial.begin(9600);   
+     dht.begin();
 }
 
 void clearRow(int row)
@@ -59,9 +66,10 @@ void setupDhtTemp()
 
 void printDhtTemp()
 {
-   int chk = DHT11.read(DHT11PIN);
+   //int chk = DHT11.read(DHT11PIN);
    lcd.setCursor(9, 1);
-   global_temp_dht = (float)DHT11.temperature;
+   //global_temp_dht = (float)DHT11.temperature;
+   global_temp_dht = dht.readTemperature();
    lcd.print(global_temp_dht, 2);// Print a centigrade temperature to the LCD.  
 }
 
@@ -76,9 +84,10 @@ void setupDhtHumidity()
 
 void printDhtHumidity()
 {
-  int chk = DHT11.read(DHT11PIN);
+  //int chk = DHT11.read(DHT11PIN);
   lcd.setCursor(9, 1); // set the cursor to column 0, line 0
-  global_humid_dht = (float)DHT11.humidity;
+  //global_humid_dht = (float)DHT11.humidity;
+  global_humid_dht = dht.readHumidity();
   lcd.print(global_humid_dht, 2);// Print a message of "Humidity: "to the LCD
 }
 
@@ -125,7 +134,7 @@ void printToSerial(){
 
 void loop()
 {      
-    int chk = DHT11.read(DHT11PIN);
+    //int chk = DHT11.read(DHT11PIN);
     setupFeels();
     setupDhtTemp();
     for (int tempRounds = 0; tempRounds < 15; tempRounds++)
